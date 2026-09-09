@@ -1,0 +1,71 @@
+.accroche {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  background: var(--creme);
+  border-bottom: 1px solid var(--creme-fonce);
+  padding: 96px 0 64px;
+}
+
+.accroche__conteneur {
+  max-width: 820px;
+}
+
+.accroche__sur-titre {
+  font-family: var(--police-texte);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brun);
+  margin-bottom: 24px;
+}
+
+.accroche__titre {
+  font-size: 42px;
+  letter-spacing: -0.01em;
+  color: var(--sombre);
+  position: relative;
+}
+
+.accroche__titre::after {
+  content: '';
+  display: block;
+  width: 88px;
+  height: 5px;
+  background: var(--dore);
+  margin-top: 28px;
+  border-radius: 3px;
+}
+
+.accroche__sous-titre {
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--gris);
+  max-width: 46ch;
+  margin-top: 28px;
+}
+
+.accroche__bouton {
+  margin-top: 44px;
+}
+
+@media (min-width: 560px) {
+  .accroche__titre {
+    font-size: 56px;
+  }
+}
+
+@media (min-width: 860px) {
+  .accroche {
+    padding: 0;
+  }
+
+  .accroche__titre {
+    font-size: 72px;
+  }
+
+  .accroche__sous-titre {
+    font-size: 21px;
+  }
+}

@@ -1,0 +1,22 @@
+.a-propos {
+  background: var(--creme);
+}
+
+.a-propos__titre {
+  font-size: 28px;
+}
+
+.a-propos__texte {
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--sombre);
+}
+
+.a-propos__texte + .a-propos__texte {
+  margin-top: 18px;
+}
+
+.a-propos__texte strong {
+  color: var(--brun);
+}
