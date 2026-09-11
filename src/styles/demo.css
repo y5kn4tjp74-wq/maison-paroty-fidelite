@@ -1,0 +1,294 @@
+.demo {
+  background: var(--blanc);
+}
+
+.demo__titre {
+  font-size: 32px;
+  margin-top: 20px;
+  max-width: 22ch;
+}
+
+.demo__intro {
+  color: var(--gris);
+  font-size: 18px;
+  margin-top: 16px;
+  max-width: 48ch;
+}
+
+.demo__carte-cadre {
+  margin-top: 48px;
+  border: 1px solid var(--creme-fonce);
+  border-radius: 8px;
+  background: var(--creme);
+  overflow: hidden;
+}
+
+.demo__entete {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--creme-fonce);
+}
+
+@media (min-width: 640px) {
+  .demo__entete {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.demo__etapes {
+  list-style: none;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.demo__etape {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--creme-fonce);
+  background: var(--blanc);
+}
+
+.demo__etape-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--creme-fonce);
+  color: var(--gris);
+}
+
+.demo__etape-nom {
+  font-size: 13px;
+  color: var(--gris);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.demo__etape--actuelle {
+  border-color: var(--brun);
+  background: var(--creme);
+}
+
+.demo__etape--actuelle .demo__etape-numero {
+  background: var(--brun);
+  color: var(--blanc);
+}
+
+.demo__etape--actuelle .demo__etape-nom {
+  color: var(--sombre);
+}
+
+.demo__etape--faite .demo__etape-numero {
+  background: var(--dore);
+  color: var(--blanc);
+}
+
+.demo__etape--faite .demo__etape-nom {
+  color: var(--gris);
+}
+
+.demo__recommencer {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--gris);
+  color: var(--gris);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--rayon);
+  cursor: pointer;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.demo__recommencer:hover {
+  border-color: var(--brun);
+  color: var(--brun);
+}
+
+.demo__contenu {
+  padding: 40px 20px 48px;
+}
+
+@media (min-width: 640px) {
+  .demo__contenu {
+    padding: 56px 48px 64px;
+  }
+}
+
+.demo__etape-panneau {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.demo__sous-titre {
+  font-size: 22px;
+}
+
+.demo__legende {
+  color: var(--gris);
+  font-size: 15px;
+  font-style: italic;
+}
+
+.demo__mention {
+  color: var(--gris);
+  font-size: 14px;
+  max-width: 42ch;
+}
+
+/* ---- Formulaire ---- */
+
+.formulaire-inscription {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.formulaire-inscription__champ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formulaire-inscription__champ span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sombre);
+}
+
+.formulaire-inscription__champ input {
+  font-size: 17px;
+  padding: 14px 16px;
+  border: 2px solid var(--creme-fonce);
+  border-radius: var(--rayon);
+  background: var(--blanc);
+  color: var(--sombre);
+  min-height: 48px;
+}
+
+.formulaire-inscription__champ input:focus {
+  border-color: var(--brun);
+  outline: none;
+}
+
+.formulaire-inscription .bouton {
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* ---- Carte de fidélité ---- */
+
+.carte-fidelite {
+  width: 100%;
+  background: var(--brun);
+  color: var(--blanc);
+  border-radius: 12px;
+  padding: 28px 24px;
+  text-align: left;
+  box-shadow: 0 12px 28px rgba(46, 30, 10, 0.18);
+}
+
+.carte-fidelite--pulse {
+  animation: pulse-carte 0.5s ease;
+}
+
+@keyframes pulse-carte {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.carte-fidelite__entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding-bottom: 14px;
+}
+
+.carte-fidelite__enseigne {
+  font-family: var(--police-titre);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.carte-fidelite__type {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dore);
+}
+
+.carte-fidelite__titulaire {
+  margin-top: 18px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.carte-fidelite__progression {
+  margin-top: 22px;
+}
+
+.carte-fidelite__barre {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.carte-fidelite__barre-remplie {
+  height: 100%;
+  background: var(--dore);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.carte-fidelite__compte {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.carte-fidelite__recompense {
+  margin-top: 16px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.demo__panneau-simulation .bouton,
+.demo__panneau-confirmation .bouton {
+  width: 100%;
+}
+
+.qr-decoratif {
+  border: 1px solid var(--creme-fonce);
+  border-radius: 8px;
+}
