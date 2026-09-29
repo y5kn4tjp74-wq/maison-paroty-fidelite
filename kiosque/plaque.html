@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4A4940">
+<title>Plaque Kiosque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Caveat:wght@700&family=Fraunces:opsz,wght@9..144,700&display=swap">
+<style>
+  :root {
+    --gris: #4A4940;
+    --gris-fonce: #2F2E29;
+    --rouge: #D7141A;
+    --rouge-fonce: #A30E13;
+    --or: #C89B3F;
+    --creme: #F4F1EA;
+    --texte: #23282C;
+    --doux: #5C605F;
+    --blanc: #FFFFFF;
+  }
+  html, body { height: auto; }
+  body {
+    background: #1B1F22;
+    color: var(--texte);
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    padding-inline: 16px;
+    padding-block: 24px 32px;
+    margin: 0;
+  }
+  .scene { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .note { margin: 0; text-align: center; font-size: 13px; color: #A9A38F; }
+
+  /* Plaque A5 debout (148 × 210 mm), fixée au mur */
+  .plaque {
+    aspect-ratio: 148 / 210;
+    max-width: 100%;
+    background: var(--creme);
+    border-radius: 8px;
+    box-shadow: 0 30px 60px rgba(0,0,0,.5);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .entete {
+    padding: 14px 18px 22px;
+    color: var(--blanc);
+    background:
+      linear-gradient(to bottom, transparent 0 calc(100% - 13px), var(--rouge) calc(100% - 13px) calc(100% - 9px), transparent calc(100% - 9px) calc(100% - 5px), var(--rouge) calc(100% - 5px)),
+      var(--gris);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .marque { display: flex; flex-direction: column; line-height: 1; }
+  .kiosque { white-space: nowrap; font-family: 'Oswald', 'Arial Narrow', sans-serif; font-weight: 700; font-size: clamp(22px, 7.4vw, 30px); color: var(--rouge); }
+  .by { display: inline-flex; align-items: center; gap: 6px; font-family: 'Caveat', cursive; font-size: 21px; }
+  .by i { display: block; width: 16px; height: 2px; background: #fff; }
+  .fidelite { text-align: right; line-height: 1; }
+  .fidelite b { white-space: nowrap; display: block; font-family: 'Caveat', cursive; font-size: 30px; font-weight: 700; }
+  .fidelite span { font-size: 9px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+
+  .corps {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 12px 20px 14px;
+    text-align: center; gap: 8px;
+  }
+  .accroche { margin: 0; font-family: 'Caveat', cursive; font-weight: 700; font-size: clamp(32px, 9.5vw, 44px); line-height: .95; text-wrap: balance; color: var(--gris-fonce); }
+  .accroche .petit { display: block; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--rouge-fonce); margin-bottom: 4px; }
+  .accroche .mot { position: relative; display: inline-block; }
+  .accroche .mot svg { position: absolute; left: -3%; bottom: -4px; width: 106%; height: 9px; color: var(--rouge); }
+  .panneau {
+    width: 58%; max-width: 100%; aspect-ratio: 1; box-sizing: border-box;
+    background: var(--blanc);
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--gris-fonce);
+    box-shadow: 0 6px 0 var(--rouge-fonce);
+    display: grid; place-items: center;
+  }
+  .panneau svg { width: 100%; height: 100%; display: block; }
+  .secours { font-size: 12px; word-break: break-all; color: var(--doux); }
+  .cuisson {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 14px; border-radius: 999px;
+    background: var(--blanc); border: 2px solid var(--gris-fonce); box-shadow: 3px 3px 0 var(--rouge);
+    font-size: 15px; font-weight: 800; transform: rotate(-2deg);
+  }
+  .consigne { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .consigne span { display: block; font-weight: 500; color: var(--doux); }
+  .rgpd { margin: 0; width: 100%; padding-top: 8px; border-top: 1px dashed #CFC7B6; font-size: 11px; line-height: 1.35; color: var(--doux); }
+</style>
+
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="scene">
+  <p class="note">Plaque A5 à fixer au mur du kiosque · scannez avec l'appareil photo</p>
+
+  <article class="plaque" aria-label="Plaque fidélité du Kiosque by Paroty">
+    <header class="entete">
+      <div class="marque"><span class="kiosque">LE KIOSQUE</span><span class="by"><i></i>by Paroty<i></i></span></div>
+      <div class="fidelite"><b>La Fidélité</b><span>pizzas maison</span></div>
+    </header>
+    <div class="corps">
+      <p class="accroche"><span class="petit">Carte de fidélité</span>10 passages,<br><span class="mot">1 pizza offerte !<svg viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 7 Q 12 1, 22 7 T 42 7 T 62 7 T 82 7 T 102 7 T 118 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></span></p>
+      <div class="panneau" id="qr"><span class="secours">Chargement du code…</span></div>
+      <span class="cuisson">🍕 Scannez pendant la cuisson</span>
+      <p class="consigne">Avec l'appareil photo de votre téléphone.<span>Un passage par jour. Rien à installer.</span></p>
+      <p class="rgpd">Votre numéro sert à retrouver votre carte. Suppression sur demande : ecouteclient@paroty.fr</p>
+    </div>
+  </article>
+
+  <p class="note">Démo : le code ouvre la carte de fidélité du Kiosque.</p>
+</div>
+
+<script>
+var LIEN = "https://maison-paroty-fidelite.vercel.app/kiosque/";
+function dessiner() {
+  var zone = document.getElementById("qr");
+  try {
+    var q = qrcode(0, "Q");
+    q.addData(LIEN);
+    q.make();
+    zone.innerHTML = q.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    var svg = zone.querySelector("svg");
+    if (svg) { svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "QR code vers la carte de fidélité du Kiosque"); }
+  } catch (e) {
+    zone.innerHTML = '<span class="secours">' + LIEN + '</span>';
+  }
+}
+function charger(src, ok, ko) {
+  var s = document.createElement("script");
+  s.src = src; s.onload = ok; s.onerror = ko;
+  document.head.appendChild(s);
+}
+charger("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js", dessiner, function () {
+  charger("https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js", dessiner, dessiner);
+});
+</script>
+
+</body>
+</html>
