@@ -12,7 +12,7 @@
 /* ——— Coque de la page : le téléphone du client ——— */
 html, body { height: auto; }
 body { background: #1B1F22; margin: 0; }
-.app { max-width: 480px; margin: 0 auto; background: #F4F1EA; min-height: 100dvh; }
+.app { max-width: 480px; margin: 0 auto; background: #F4F1EA; min-height: 100dvh; overflow-x: clip; }
 </style>
 <style>
 /* ——— Maison Paroty · E2 Inscription ———
@@ -878,6 +878,11 @@ body { background: #1B1F22; margin: 0; }
 <style>
 /* ═══════════ Ajouts V0 : écrans E4, E5, E5-bis, E6, E9 dans le même style ═══════════ */
 
+/* Prénoms longs : jamais coupés */
+.e2__mini-name { white-space: normal; overflow: visible; text-overflow: clip; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .35em; }
+.e2__mini-prenom { font-size: var(--taille, 26px); line-height: 1.05; overflow-wrap: anywhere; padding-right: .12em; }
+.e3__hello-name { font-size: var(--taille, 42px); overflow-wrap: anywhere; padding-inline: .1em; max-width: 100%; }
+
 /* Pastille calme (déjà compté, panne) */
 .e3__success--calme .e3__success-icon { background: var(--anthracite); color: var(--or); font-weight: 900; font-size: 15px; }
 
@@ -1024,6 +1029,8 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
     const h = d.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }).replace(":", "h");
     return "le " + j + " à " + h;
   }
+  const tailleNom = (p, grand, moyen, petit) => { const n = [...String(p)].length; return n <= 9 ? grand : n <= 13 ? moyen : petit; };
+  const styleNom = p => ` style="--taille:${tailleNom(p, 42, 34, 28)}px"`;
   const echap = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function vibrer() { try { if (navigator.vibrate) navigator.vibrate([30, 40, 60]); } catch (e) {} }
 
@@ -1118,7 +1125,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
     const name = s.prenom || "…";
     if (name !== st.lastName) {
       st.lastName = name;
-      const n = E.mp.cloneNode(); n.textContent = name; E.mp.replaceWith(n); E.mp = n;
+      const n = E.mp.cloneNode(); n.textContent = name; n.style.setProperty("--taille", tailleNom(name, 26, 21, 17) + "px"); E.mp.replaceWith(n); E.mp = n;
     }
     const errP = st.touche.p && !s.pOk ? "Indiquez votre prénom (2 lettres minimum)." : "";
     const errT = st.touche.t && !s.tOk ? (s.d.length > 0 && !/^0[67]/.test(s.d) ? "Un numéro de portable commence par 06 ou 07." : "Il manque des chiffres : un portable en a 10.") : "";
@@ -1178,7 +1185,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
       ${ENTETE("e3")}
       <main class="e3__main">
         <p class="e3__success${o.calme ? " e3__success--calme" : ""}" role="status">${icone}${o.pastille}</p>
-        <h1 class="e3__hello"><span class="e3__hello-small">${o.petit || "Bonjour"}</span><span class="e3__hello-name">${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
+        <h1 class="e3__hello"><span class="e3__hello-small">${o.petit || "Bonjour"}</span><span class="e3__hello-name"${styleNom(S.client.prenom)}>${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
         <section class="e3__card">
           <div class="e3__card-head">
             <p class="e3__card-title"><span class="e3__card-script">Formule</span><span class="e3__card-caps">Sandwich · Pizza · Tartine</span></p>
@@ -1217,7 +1224,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
       ${ENTETE("e3")}
       <main class="e3__main">
         <p class="e3__success" role="status"><span class="e3__success-icon">${ICONE_OK}</span>Récompense débloquée !</p>
-        <h1 class="e3__hello"><span class="e3__hello-small">Bravo</span><span class="e3__hello-name">${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
+        <h1 class="e3__hello"><span class="e3__hello-small">Bravo</span><span class="e3__hello-name"${styleNom(S.client.prenom)}>${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
         ${tamponVivant()}
         <p class="v0__dix">10<span>/10</span></p>
         <p class="v0__montrer">À montrer à la vendeuse</p>
@@ -1270,7 +1277,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
         <p class="e3__success" role="status"><span class="e3__success-icon">${ICONE_OK}</span>Récompense utilisée</p>
         <p class="v0__heure">${heureParis(new Date(S.derniereUtilisation))}</p>
         ${tamponVivant()}
-        <h1 class="e3__hello"><span class="e3__hello-small">Bon appétit</span><span class="e3__hello-name">${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
+        <h1 class="e3__hello"><span class="e3__hello-small">Bon appétit</span><span class="e3__hello-name"${styleNom(S.client.prenom)}>${echap(S.client.prenom)}${SQUIGGLE}</span></h1>
       </main>
       <footer class="e3__actions">
         <button type="button" class="e3__btn e3__btn--primary" id="suite">Voir ma nouvelle carte</button>
