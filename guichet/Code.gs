@@ -541,9 +541,13 @@ function construireTableauDeBord_(f) {
     ['Scans refusés', '=COUNTIFS(Passages!D2:D,B3,Passages!E2:E,"refuse*")'],
     ['Consentements SMS', '=COUNTIFS(Clients!E2:E,B3,Clients!G2:G,"oui")']
   ];
-  // setValues : le texte reste du texte, et ce qui commence par = devient une formule.
-  // (setFormulas prenait aussi les titres pour des formules et affichait #ERROR!)
-  f.getRange(1, 1, lignes.length, 2).setValues(lignes);
+  // Les titres en texte (setValue), les formules avec setFormula : cette méthode lit toujours la syntaxe
+  // anglaise (virgules), même dans un Sheets en français. setValues, lui, suit la langue du Sheets et échoue.
+  lignes.forEach(function (l, i) {
+    f.getRange(i + 1, 1).setValue(l[0]);
+    if (String(l[1]).charAt(0) === '=') { f.getRange(i + 1, 2).setFormula(l[1]); }
+    else { f.getRange(i + 1, 2).setValue(l[1]); }
+  });
   f.getRange('A1').setFontWeight('bold').setFontSize(14);
   f.getRange('B9').setNumberFormat('0.0%');
   f.getRange('B11').setNumberFormat('0.0%');

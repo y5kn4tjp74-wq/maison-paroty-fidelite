@@ -42,6 +42,8 @@ class Plage {
     }));
     return this;
   }
+  setValue(v) { return this.setValues([[v]]); }
+  setFormula(v) { return this.setValues([[v]]); }
   setFormulas(vals) { return this.setValues(vals); }
   setNumberFormat() { return this; }
   setFontWeight() { return this; }
