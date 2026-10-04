@@ -32,7 +32,7 @@ Les autres valeurs (plafonds, blocage, conservation) sont déjà à leurs valeur
 3. Déployer, autoriser, copier l'URL qui finit par `/exec`. C'est l'adresse du guichet : le site la reçoit dans son fichier de réglages.
 4. Test rapide : ouvre l'URL dans le navigateur, tu dois voir `{"statut":"ok","service":"guichet"}`.
 
-Quand tu modifies le code plus tard : Déployer → Gérer les déploiements → crayon → Version : Nouvelle version. L'URL ne change pas.
+**Chaque modification du code = un nouveau déploiement** : Déployer → Gérer les déploiements → crayon → Version : Nouvelle version → Déployer. Sans ça, l'URL `/exec` continue de servir l'ancienne version. L'URL ne change pas.
 
 ## 4. Tâches automatiques (une seule fois)
 
@@ -45,7 +45,7 @@ Le mail du soir ne part que si `alertes_destinataires` est rempli.
 
 ## 5. Chaque soir
 
-Dans l'onglet **Tickets**, une ligne par soir : date au format `2026-10-07`, magasin (`kiosque`), nombre de tickets. Sans ça le taux de scan reste à 0.
+Dans l'onglet **Tickets**, une ligne par soir : date au format `2026-10-07` (année-mois-jour, colonne en texte : ne pas la convertir), magasin (`kiosque`), nombre de tickets. Sans ça le taux de scan reste à 0.
 
 ## 6. Demande de suppression d'un client
 
@@ -73,7 +73,7 @@ Le vrai site est dans `pilote/`. Une seule ligne à remplir dans `pilote/config.
 
 ## Tester sans Google
 
-`node guichet/tests/simulateur.js` lance 31 scénarios sur un faux Google (règle du jour, minuit à Paris, récompense, blocage, plafonds, panne).
+`node guichet/tests/simulateur.js` lance 38 scénarios sur un faux Google (règle du jour, minuit à Paris, récompense, blocage, plafonds, panne).
 `node guichet/tests/serveur-local.js` lance le vrai site `pilote/` contre ce faux guichet : http://localhost:8787/pilote/ (variable `SEUIL=5` pour changer le seuil).
 
 ## Ce qui n'est pas vérifié tant qu'on n'a pas un vrai Sheets
@@ -85,5 +85,8 @@ Le vrai site est dans `pilote/`. Une seule ligne à remplir dans `pilote/config.
 ## Choix à connaître
 
 - La pizza offerte n'est pas un achat : le jour où la récompense est utilisée, le passage du jour est bloqué.
-- Les scans refusés par plafond ne sont pas journalisés (pour ne pas remplir le Sheets en cas d'abus).
+- Les scans refusés par plafond, et les cartes inconnues, ne sont pas journalisés (pour ne pas remplir le Sheets en cas d'abus). Un refus « déjà compté » n'est écrit qu'une fois par client et par jour.
+- La carte du client est écrite en dernier : si une écriture échoue, il n'y a pas de client à moitié créé.
+- Si une feuille dépasse 1000 lignes, le guichet l'agrandit tout seul.
+- Un réglage numérique illisible (ex. « onze ») est remplacé par la valeur par défaut ; l'erreur est visible dans Apps Script → Exécutions.
 - Le « taux de retour » du Tableau de bord = clients avec au moins 2 passages ÷ inscrits (version simple, sans la fenêtre des 8 premiers jours).

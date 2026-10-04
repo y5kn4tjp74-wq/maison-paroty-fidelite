@@ -93,11 +93,11 @@ test('21h59 UTC en été/automne = 23h59 Paris, pas le même jour que 22h01 UTC'
   e.horloge('2026-10-07T22:01:00Z'); // 00:01 Paris le 8
   assert.strictEqual(e.appeler({ action: 'scanner', magasin: K, identifiant: id }).statut, 'ok');
 });
-test('identifiant inconnu : client_inconnu, journalisé', () => {
+test('identifiant inconnu : client_inconnu, rien d\'écrit', () => {
   const e = nouvelEnvironnement(); e.horloge(jour(0));
   const r = e.appeler({ action: 'scanner', magasin: K, identifiant: 'abcdefgh-1234' });
   assert.strictEqual(r.statut, 'client_inconnu');
-  assert.strictEqual(e.lignes('Passages')[0][4], 'refuse_inconnu');
+  assert.strictEqual(e.lignes('Passages').length, 0);
 });
 
 console.log('\nRécompense (seuil lu dans Réglages)');
@@ -243,7 +243,7 @@ test('panne interne : statut erreur, jamais de passage compté', () => {
   delete e.feuilles['Passages'];
   const r = insc(e);
   assert.strictEqual(r.statut, 'erreur'); assert.strictEqual(r.passages, undefined);
-  assert.strictEqual(e.lignes('Clients').length, 0); // la carte à moitié créée est retirée
+  assert.strictEqual(e.lignes('Clients').length, 0); // rien n'est écrit si le journal échoue
 });
 test('lecture seule GET : pas de données', () => {
   const e = nouvelEnvironnement();
@@ -269,6 +269,56 @@ test('suppression RGPD d\'un client avec son numéro', () => {
   assert.strictEqual(e.sandbox.supprimerClient('06 12 34 56 78'), 'Client supprimé');
   assert.strictEqual(e.lignes('Clients').length, 1);
   assert.strictEqual(e.lignes('Passages').length, 1);
+});
+
+console.log('\nRelecture : cas limites');
+test('identifiant « constructor » ou « __proto__ » : inconnu, pas de plantage', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  assert.strictEqual(e.appeler({ action: 'scanner', magasin: K, identifiant: 'constructor' }).statut, 'client_inconnu');
+  assert.strictEqual(e.appeler({ action: 'utiliser_recompense', magasin: K, identifiant: 'constructor' }).statut, 'client_inconnu');
+});
+test('prénom sans lettre exploitable (Ø) : refusé', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  assert.strictEqual(insc(e, { prenom: 'Ø' }).statut, 'erreur_validation');
+});
+test('plus de 1000 lignes : les écritures continuent (feuille agrandie)', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  const id = insc(e).identifiant;
+  e.feuilles['Passages'].g.length = 0;
+  for (let i = 0; i < 1000; i++) e.feuilles['Passages'].g[i] = i === 0 ? ['d'] : ['x', 'y', 'z', K, 'compte', ''];
+  e.horloge(jour(1));
+  const r = e.appeler({ action: 'scanner', magasin: K, identifiant: id });
+  assert.strictEqual(r.statut, 'ok'); assert.strictEqual(r.passages, 2);
+  assert.ok(e.feuilles['Passages'].getMaxRows() > 1000);
+});
+test('plus de 1000 clients : inscription possible', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  for (let i = 0; i < 1000; i++) e.feuilles['Clients'].g[i] = i === 0 ? ['id'] : ['u' + i, '+33' + i, 'P', 'p', K];
+  const r = insc(e, { telephone: '0677777777', prenom: 'Tard' });
+  assert.strictEqual(r.statut, 'ok');
+  assert.strictEqual(e.feuilles['Clients'].g.length, 1001);
+});
+test('réglage seuil avec une virgule ou du texte : valeur par défaut, pas de plantage', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  const reg = e.feuilles['Réglages'].g;
+  reg.forEach(l => { if (l[0] === 'seuil') l[1] = 'onze'; if (l[0] === 'cout_de_revient') l[1] = '4,5'; });
+  const r = insc(e);
+  assert.strictEqual(r.seuil, 11);
+  assert.strictEqual(e.sandbox.lireReglages_().cout_de_revient, 4.5);
+});
+test('refus du même jour : une seule ligne par client et par jour', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  const id = insc(e).identifiant;
+  for (let i = 0; i < 5; i++) e.appeler({ action: 'scanner', magasin: K, identifiant: id });
+  assert.strictEqual(e.lignes('Passages').filter(l => l[4] === 'refuse_meme_jour').length, 1);
+});
+test('bon prénom après des échecs : compteur remis à zéro même si déjà compté ce jour', () => {
+  const e = nouvelEnvironnement(); e.horloge(jour(0));
+  insc(e);
+  e.appeler({ action: 'recuperer', magasin: K, telephone: '0612345678', prenom: 'Faux' });
+  assert.strictEqual(e.lignes('Clients')[0][13], 1);
+  e.appeler({ action: 'recuperer', magasin: K, telephone: '0612345678', prenom: 'Maxime' });
+  assert.strictEqual(e.lignes('Clients')[0][13], 0);
 });
 
 console.log(`\n${ok} tests réussis${process.exitCode ? ', des échecs au-dessus' : ''}.\n`);

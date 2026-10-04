@@ -50,15 +50,18 @@ class Plage {
   setFontSize() { return this; }
 }
 class Feuille {
-  constructor(nom) { this.nom = nom; this.g = []; }
+  constructor(nom) { this.nom = nom; this.g = []; this.max = 1000; }
   getLastRow() {
     let n = 0;
     this.g.forEach((l, i) => { if (l && l.some(v => v !== '' && v !== undefined)) n = i + 1; });
     return n;
   }
-  getMaxRows() { return 1000; }
+  getMaxRows() { return this.max; }
+  insertRowsAfter(pos, n) { this.max += n; }
   getRange(r, c, nr, nc) {
     if (typeof r === 'string') return new Plage(this, 1, 1, 1, 1);
+    // Comme le vrai Google : on ne peut pas viser une ligne qui n'existe pas.
+    if (r + (nr || 1) - 1 > this.max) throw new Error('Les coordonnées de la plage sont en dehors des dimensions de la feuille.');
     return new Plage(this, r, c, nr || 1, nc || 1);
   }
   deleteRow(n) { this.g.splice(n - 1, 1); }
@@ -82,7 +85,7 @@ function nouvelEnvironnement() {
   const sandbox = {
     console,
     SpreadsheetApp: { getActiveSpreadsheet: () => ss },
-    LockService: { getScriptLock: () => ({ tryLock: () => verrouLibre, releaseLock: () => {} }) },
+    LockService: { getScriptLock: () => ({ tryLock: () => verrouLibre, waitLock: () => {}, releaseLock: () => {} }) },
     CacheService: { getScriptCache: () => ({
       get: k => (cache.has(k) ? cache.get(k) : null),
       put: (k, v) => cache.set(k, v)

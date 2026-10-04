@@ -135,7 +135,7 @@ function valider_(d, reglages) {
     if (!prenom) {
       return { statut: 'erreur_validation', message: 'Indiquez votre prénom.' };
     }
-    if (!PRENOM_OK.test(prenom)) {
+    if (!PRENOM_OK.test(prenom) || !normaliserPrenom_(prenom)) {
       return { statut: 'erreur_validation', message: 'Ce prénom semble incorrect. Utilisez seulement des lettres.' };
     }
     if (!normaliserTelephone_(d.telephone)) {
@@ -186,7 +186,7 @@ function listeMagasins_(reglages) {
 // ───────────────────────── Actions ─────────────────────────
 
 function inscrire_(d, reglages) {
-  if (!compteurHoraire_('inscriptions', Number(reglages.plafond_inscriptions_heure))) {
+  if (!compteurHoraire_('inscriptions', reglages.plafond_inscriptions_heure)) {
     return plafond_();
   }
   var tel = normaliserTelephone_(d.telephone);
@@ -215,19 +215,9 @@ function inscrire_(d, reglages) {
   ligne[C.echecs] = 0;
   ligne[C.bloqueJusqua] = '';
 
-  var feuille = onglet_(ONGLET.clients);
-  var numero = Math.max(feuille.getLastRow(), 1) + 1;
-  feuille.getRange(numero, 1, 1, ligne.length).setValues([ligne]);
-
-  var client = { numero: numero, ligne: ligne };
-  var r;
-  try {
-    r = compterPassage_(client, d.magasin, reglages, maintenant);
-  } catch (err) {
-    // Inscription à moitié faite : on retire la carte pour ne pas laisser un client sans passage.
-    try { feuille.deleteRow(numero); } catch (x) { /* rien de plus à faire */ }
-    throw err;
-  }
+  // Le client n'est écrit qu'à la toute fin du passage (voir sauverClient_) : rien à défaire si ça échoue avant.
+  var client = { numero: 0, ligne: ligne };
+  var r = compterPassage_(client, d.magasin, reglages, maintenant);
   r.identifiant = ligne[C.id];
   r.prenom = ligne[C.prenom];
   r.nouveau = true;
@@ -235,13 +225,12 @@ function inscrire_(d, reglages) {
 }
 
 function scanner_(d, reglages) {
-  if (!compteurHoraire_('scans', Number(reglages.plafond_scans_heure))) {
+  if (!compteurHoraire_('scans', reglages.plafond_scans_heure)) {
     return plafond_();
   }
   var clients = lireClients_();
   var idx = clients.parId[d.identifiant];
   if (idx === undefined) {
-    journaliserPassage_(maintenant_(), '', d.magasin, 'refuse_inconnu', 'identifiant inconnu');
     return { statut: 'client_inconnu', message: 'Carte introuvable. Créez-la en quelques secondes.' };
   }
   var client = clients.liste[idx];
@@ -251,7 +240,7 @@ function scanner_(d, reglages) {
 }
 
 function recuperer_(d, reglages) {
-  if (!compteurHoraire_('scans', Number(reglages.plafond_scans_heure))) {
+  if (!compteurHoraire_('scans', reglages.plafond_scans_heure)) {
     return plafond_();
   }
   var tel = normaliserTelephone_(d.telephone);
@@ -262,8 +251,8 @@ function recuperer_(d, reglages) {
   }
   var client = clients.liste[idx];
   var maintenant = maintenant_();
-  var max = Number(reglages.echecs_recuperation_max);
-  var blocage = Number(reglages.blocage_minutes);
+  var max = reglages.echecs_recuperation_max;
+  var blocage = reglages.blocage_minutes;
 
   var jusqua = Number(client.ligne[C.bloqueJusqua]) || 0;
   if (jusqua > maintenant.getTime()) {
@@ -276,11 +265,11 @@ function recuperer_(d, reglages) {
       var fin = maintenant.getTime() + blocage * 60000;
       client.ligne[C.echecs] = 0;
       client.ligne[C.bloqueJusqua] = fin;
-      ecrireClient_(client);
+      sauverClient_(client);
       return blocageReponse_(fin, maintenant);
     }
     client.ligne[C.echecs] = echecs;
-    ecrireClient_(client);
+    sauverClient_(client);
     return {
       statut: 'erreur_validation',
       message: 'Ce numéro est déjà utilisé avec un autre prénom. Demandez de l\'aide en caisse.',
@@ -288,9 +277,13 @@ function recuperer_(d, reglages) {
     };
   }
 
-  client.ligne[C.echecs] = 0;
-  client.ligne[C.bloqueJusqua] = '';
+  if (client.ligne[C.echecs] || client.ligne[C.bloqueJusqua]) {
+    client.ligne[C.echecs] = 0;
+    client.ligne[C.bloqueJusqua] = '';
+    client.modifie = true;
+  }
   var r = compterPassage_(client, d.magasin, reglages, maintenant);
+  if (client.modifie && !client.sauve) { sauverClient_(client); }
   r.identifiant = client.ligne[C.id];
   r.prenom = client.ligne[C.prenom];
   r.recupere = true;
@@ -309,7 +302,7 @@ function utiliserRecompense_(d, reglages) {
       statut: 'erreur_validation',
       message: 'Aucune récompense à utiliser pour le moment.',
       passages: Number(client.ligne[C.passages]) || 0,
-      seuil: Number(reglages.seuil),
+      seuil: reglages.seuil,
       recompense_en_attente: false
     };
   }
@@ -325,26 +318,24 @@ function utiliserRecompense_(d, reglages) {
     }
   }
   var nom = reglages.recompense;
-  var cout = Number(reglages.cout_de_revient) || 0;
+  var cout = reglages.cout_de_revient;
   if (ligneRec) {
     feuille.getRange(ligneRec, 4, 1, 3).setValues([[horodatage_(maintenant), nom, cout]]);
   } else {
-    feuille.getRange(Math.max(n, 1) + 1, 1, 1, 6).setValues([[
-      client.ligne[C.id], d.magasin, '', horodatage_(maintenant), nom, cout
-    ]]);
+    ajouterLigne_(feuille, [client.ligne[C.id], d.magasin, '', horodatage_(maintenant), nom, cout]);
   }
 
   client.ligne[C.passages] = 0;
   client.ligne[C.attente] = false;
   // La pizza offerte n'est pas un achat : elle ne compte pas comme passage ce jour-là.
   client.ligne[C.dernierJour] = jourParis_(maintenant);
-  ecrireClient_(client);
+  sauverClient_(client);
 
   return {
     statut: 'ok',
     message: 'Récompense utilisée.',
     passages: 0,
-    seuil: Number(reglages.seuil),
+    seuil: reglages.seuil,
     recompense_en_attente: false,
     prenom: client.ligne[C.prenom],
     validation_jour: Utilities.formatDate(maintenant, FUSEAU, 'dd/MM'),
@@ -355,20 +346,18 @@ function utiliserRecompense_(d, reglages) {
 
 // Règle commune : 1 passage par jour, récompense en attente, déblocage au seuil.
 function compterPassage_(client, magasin, reglages, maintenant) {
-  var seuil = Number(reglages.seuil);
+  var seuil = reglages.seuil;
   var jour = jourParis_(maintenant);
   var l = client.ligne;
   var id = l[C.id];
 
   if (l[C.attente] === true) {
-    ecrireClient_(client);
-    journaliserPassage_(maintenant, id, magasin, 'refuse_recompense_en_attente', 'récompense à utiliser');
+    refusUneFoisParJour_(maintenant, id, magasin, 'refuse_recompense_en_attente', 'récompense à utiliser');
     return reponseCarte_('recompense_debloquee', 'Votre récompense vous attend.', l, seuil);
   }
 
   if (jourStr_(l[C.dernierJour]) === jour) {
-    ecrireClient_(client);
-    journaliserPassage_(maintenant, id, magasin, 'refuse_meme_jour', 'déjà compté aujourd\'hui');
+    refusUneFoisParJour_(maintenant, id, magasin, 'refuse_meme_jour', 'déjà compté aujourd\'hui');
     return reponseCarte_('deja_compte', 'Votre passage du jour est bien enregistré.', l, seuil);
   }
 
@@ -377,19 +366,29 @@ function compterPassage_(client, magasin, reglages, maintenant) {
   l[C.dernierJour] = jour;
   var debloque = l[C.passages] >= seuil;
   if (debloque) { l[C.attente] = true; }
-  ecrireClient_(client);
+
+  // Ordre voulu : journal, récompense, puis la carte du client en dernier.
   journaliserPassage_(maintenant, id, magasin, 'compte', '');
+  if (debloque) {
+    ajouterLigne_(onglet_(ONGLET.recompenses), [id, magasin, horodatage_(maintenant), '', '', '']);
+  }
+  sauverClient_(client);
 
   if (debloque) {
-    var rec = onglet_(ONGLET.recompenses);
-    rec.getRange(Math.max(rec.getLastRow(), 1) + 1, 1, 1, 6).setValues([[
-      id, magasin, horodatage_(maintenant), '', '', ''
-    ]]);
     var r = reponseCarte_('recompense_debloquee', 'Récompense débloquée !', l, seuil);
     r.nouvelle_recompense = true; // le site la fête (vibration) seulement à ce moment-là
     return r;
   }
   return reponseCarte_('ok', 'Passage enregistré.', l, seuil);
+}
+
+// Un refus n'est écrit qu'une fois par client et par jour (sinon un client qui rescanne remplit le Sheets).
+function refusUneFoisParJour_(date, id, magasin, statut, motif) {
+  var cache = CacheService.getScriptCache();
+  var cle = 'ref_' + statut + '_' + id + '_' + jourParis_(date);
+  if (cache.get(cle)) { return; }
+  cache.put(cle, '1', 21600);
+  journaliserPassage_(date, id, magasin, statut, motif);
 }
 
 function reponseCarte_(statut, message, l, seuil) {
@@ -435,9 +434,24 @@ function onglet_(nom) {
   return f;
 }
 
+var REGLAGES_NOMBRES = ['cout_de_revient', 'seuil', 'plafond_inscriptions_heure', 'plafond_scans_heure',
+  'echecs_recuperation_max', 'blocage_minutes', 'conservation_mois'];
+
+// Lit un nombre saisi à la main (virgule ou point). Valeur illisible : on garde la valeur par défaut.
+function num_(valeur, defaut, nom) {
+  var s = String(valeur).replace(',', '.').trim();
+  var n = Number(s);
+  if (s === '' || !isFinite(n) || n < 0) {
+    console.error('Réglage illisible, valeur par défaut utilisée : ' + nom + ' = ' + valeur);
+    return defaut;
+  }
+  return n;
+}
+
 function lireReglages_() {
   var r = {};
-  REGLAGES_DEFAUT.forEach(function (x) { r[x[0]] = x[1]; });
+  var defauts = {};
+  REGLAGES_DEFAUT.forEach(function (x) { r[x[0]] = x[1]; defauts[x[0]] = x[1]; });
   var feuille = onglet_(ONGLET.reglages);
   var n = feuille.getLastRow();
   if (n >= 2) {
@@ -445,13 +459,16 @@ function lireReglages_() {
       if (v[0] !== '' && v[1] !== '') { r[String(v[0]).trim()] = v[1]; }
     });
   }
+  REGLAGES_NOMBRES.forEach(function (k) { r[k] = num_(r[k], defauts[k], k); });
+  r.seuil = Math.floor(r.seuil);
+  if (r.seuil < 1) { r.seuil = defauts.seuil; }
   return r;
 }
 
 function lireClients_() {
   var feuille = onglet_(ONGLET.clients);
   var n = feuille.getLastRow();
-  var res = { liste: [], parId: {}, parTel: {} };
+  var res = { liste: [], parId: Object.create(null), parTel: Object.create(null) };
   if (n < 2) { return res; }
   var vals = feuille.getRange(2, 1, n - 1, ENTETE_CLIENTS.length).getValues();
   for (var i = 0; i < vals.length; i++) {
@@ -465,15 +482,28 @@ function lireClients_() {
   return res;
 }
 
-function ecrireClient_(client) {
-  onglet_(ONGLET.clients).getRange(client.numero, 1, 1, ENTETE_CLIENTS.length).setValues([client.ligne]);
+// Ajoute une ligne à la suite, en agrandissant la feuille si elle est pleine
+// (Google refuse d'écrire au-delà de la dernière ligne existante).
+function ajouterLigne_(feuille, valeurs) {
+  var numero = Math.max(feuille.getLastRow(), 1) + 1;
+  if (numero > feuille.getMaxRows()) { feuille.insertRowsAfter(feuille.getMaxRows(), 1000); }
+  feuille.getRange(numero, 1, 1, valeurs.length).setValues([valeurs]);
+  return numero;
+}
+
+// Écrit la carte du client : nouvelle ligne si elle n'existe pas encore, sinon mise à jour sur place.
+function sauverClient_(client) {
+  var feuille = onglet_(ONGLET.clients);
+  if (!client.numero) {
+    client.numero = ajouterLigne_(feuille, client.ligne);
+  } else {
+    feuille.getRange(client.numero, 1, 1, ENTETE_CLIENTS.length).setValues([client.ligne]);
+  }
+  client.sauve = true;
 }
 
 function journaliserPassage_(date, idClient, magasin, statut, motif) {
-  var f = onglet_(ONGLET.passages);
-  f.getRange(Math.max(f.getLastRow(), 1) + 1, 1, 1, 6).setValues([[
-    horodatage_(date), jourParis_(date), idClient, magasin, statut, motif
-  ]]);
+  ajouterLigne_(onglet_(ONGLET.passages), [horodatage_(date), jourParis_(date), idClient, magasin, statut, motif]);
 }
 
 function horodatage_(date) { return Utilities.formatDate(date, FUSEAU, 'yyyy-MM-dd HH:mm:ss'); }
@@ -532,7 +562,7 @@ function construireTableauDeBord_(f) {
     ['Passages comptés', '=COUNTIFS(Passages!D2:D,B3,Passages!E2:E,"compte")'],
     ['Tickets saisis (onglet Tickets)', '=SUMIF(Tickets!B2:B,B3,Tickets!C2:C)'],
     ['Passages sur les jours où les tickets sont saisis',
-      '=SUMPRODUCT((Tickets!A2:A500<>"")*(Tickets!B2:B500=B3)*COUNTIFS(Passages!B2:B5000,Tickets!A2:A500,Passages!D2:D5000,B3,Passages!E2:E5000,"compte"))'],
+      '=SUMPRODUCT((Passages!D2:D5000=B3)*(Passages!E2:E5000="compte")*ISNUMBER(MATCH(Passages!B2:B5000&"|"&B3,Tickets!A2:A500&"|"&Tickets!B2:B500,0)))'],
     ['Taux de scan', '=IFERROR(B8/B7,0)'],
     ['Clients revenus (au moins 2 passages)', '=COUNTIFS(Clients!E2:E,B3,Clients!L2:L,">=2")'],
     ['Taux de retour', '=IFERROR(B10/B5,0)'],
@@ -612,13 +642,17 @@ function sauvegardeNocturne() {
 
 /** Supprime les clients sans passage depuis N mois (12 par défaut) et leurs lignes liées. */
 function purgeMensuelle() {
+  avecVerrou_(purgeMensuelle_);
+}
+
+function purgeMensuelle_() {
   var reglages = lireReglages_();
-  var mois = Number(reglages.conservation_mois) || 12;
+  var mois = reglages.conservation_mois || 12;
   var limite = new Date(maintenant_().getTime());
   limite.setMonth(limite.getMonth() - mois);
   var limiteJour = jourParis_(limite);
   var clients = lireClients_().liste;
-  var aSupprimer = {};
+  var aSupprimer = Object.create(null);
   clients.forEach(function (c) {
     var dernier = jourStr_(c.ligne[C.dernierJour]) || String(c.ligne[C.inscription]).slice(0, 10);
     if (dernier && dernier < limiteJour) { aSupprimer[c.ligne[C.id]] = c.numero; }
@@ -632,13 +666,24 @@ function purgeMensuelle() {
 
 /** Demande de suppression d'un client (RGPD) : à lancer à la main avec son numéro. */
 function supprimerClient(telephone) {
+  return avecVerrou_(function () { return supprimerClient_(telephone); });
+}
+
+// Les tâches qui modifient le Sheets attendent leur tour : jamais en même temps qu'un passage client.
+function avecVerrou_(fonction) {
+  var verrou = LockService.getScriptLock();
+  verrou.waitLock(30000);
+  try { return fonction(); } finally { verrou.releaseLock(); }
+}
+
+function supprimerClient_(telephone) {
   var tel = normaliserTelephone_(telephone);
   if (!tel) { throw new Error('Numéro invalide'); }
   var clients = lireClients_();
   var idx = clients.parTel[tel];
   if (idx === undefined) { return 'Aucun client avec ce numéro'; }
   var c = clients.liste[idx];
-  var cible = {}; cible[c.ligne[C.id]] = c.numero;
+  var cible = Object.create(null); cible[c.ligne[C.id]] = c.numero;
   supprimerLignes_(ONGLET.passages, 3, cible);
   supprimerLignes_(ONGLET.recompenses, 1, cible);
   onglet_(ONGLET.clients).deleteRow(c.numero);

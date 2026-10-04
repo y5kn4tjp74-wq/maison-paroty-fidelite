@@ -133,7 +133,14 @@ rx(r"  /\* ═══════════ Ouvrir le lien = tenter 1 passage �
     }).then(rep => {
       if (!rep.ok) throw new Error("http " + rep.status);
       return rep.json();
-    }).finally(() => clearTimeout(minuteur));
+    }).finally(() => clearTimeout(minuteur))
+      .then(r => {
+        // Guichet occupé (plusieurs clients en même temps) : rien n'a été écrit, on réessaie une fois.
+        if (r && r.statut === "occupe" && !corps._retry) {
+          return new Promise(ok => setTimeout(ok, 1500)).then(() => appeler(Object.assign({ _retry: true }, corps)));
+        }
+        return r;
+      });
   }
   const colonnes = n => (n <= 5 ? n : n === 10 ? 5 : Math.ceil(n / 2));
   function majCarte(r) {
@@ -183,7 +190,7 @@ rx(r"  /\* ═══════════ Ouvrir le lien = tenter 1 passage �
   }
 
   /* ═══════════ E7 · Numéro déjà connu : retrouver sa carte avec le prénom ═══════════ */
-  function recuperation(tel) {
+  function recuperation(tel, prenomSaisi) {
     app.innerHTML = `
     <div class="e2 is-saisie" id="e2">
       ${ENTETE("e2")}
@@ -207,8 +214,8 @@ rx(r"  /\* ═══════════ Ouvrir le lien = tenter 1 passage �
     window.scrollTo(0, 0);
     const p = document.getElementById("prenom"), alerte = document.getElementById("alert"), btn = document.getElementById("btn");
     const racine = document.getElementById("e2");
-    document.getElementById("f").addEventListener("submit", ev => {
-      ev.preventDefault();
+    const envoyer = ev => {
+      if (ev) ev.preventDefault();
       if (btn.disabled) return;
       const prenom = nettoyerPrenom(p.value);
       if (prenom.length < 2) { alerte.textContent = "Indiquez votre prénom (2 lettres minimum)."; alerte.hidden = false; p.focus(); return; }
@@ -224,7 +231,10 @@ rx(r"  /\* ═══════════ Ouvrir le lien = tenter 1 passage �
         if (r.statut === "client_inconnu") return inscription();
         fin(r.message || ERREUR_RESEAU);
       }).catch(() => fin(ERREUR_RESEAU));
-    });
+    };
+    document.getElementById("f").addEventListener("submit", envoyer);
+    // Le prénom vient d'être saisi à l'inscription : on l'essaie tout de suite, sans le redemander.
+    if (prenomSaisi) { p.value = prenomSaisi; envoyer(); }
   }
 
   /* ═══════════ E8 · Trop d'essais : blocage 1 heure ═══════════ */
