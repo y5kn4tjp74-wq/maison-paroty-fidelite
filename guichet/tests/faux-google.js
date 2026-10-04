@@ -42,6 +42,7 @@ class Plage {
     }));
     return this;
   }
+  getValue() { return this.getValues()[0][0]; }
   setValue(v) { return this.setValues([[v]]); }
   setFormula(v) { return this.setValues([[v]]); }
   setFormulas(vals) { return this.setValues(vals); }
@@ -84,7 +85,7 @@ function nouvelEnvironnement() {
   let uuid = 0;
   const sandbox = {
     console,
-    SpreadsheetApp: { getActiveSpreadsheet: () => ss },
+    SpreadsheetApp: { getActiveSpreadsheet: () => ss, flush: () => {} },
     LockService: { getScriptLock: () => ({ tryLock: () => verrouLibre, waitLock: () => {}, releaseLock: () => {} }) },
     CacheService: { getScriptCache: () => ({
       get: k => (cache.has(k) ? cache.get(k) : null),

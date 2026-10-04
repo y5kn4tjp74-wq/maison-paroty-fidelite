@@ -575,7 +575,7 @@ function construireTableauDeBord_(f) {
   // anglaise (virgules), même dans un Sheets en français. setValues, lui, suit la langue du Sheets et échoue.
   lignes.forEach(function (l, i) {
     f.getRange(i + 1, 1).setValue(l[0]);
-    if (String(l[1]).charAt(0) === '=') { f.getRange(i + 1, 2).setFormula(l[1]); }
+    if (String(l[1]).charAt(0) === '=') { ecrireFormule_(f.getRange(i + 1, 2), l[1]); }
     else { f.getRange(i + 1, 2).setValue(l[1]); }
   });
   f.getRange('A1').setFontWeight('bold').setFontSize(14);
@@ -583,6 +583,17 @@ function construireTableauDeBord_(f) {
   f.getRange('B11').setNumberFormat('0.0%');
   f.getRange('B13').setNumberFormat('0.00');
   f.setColumnWidth(1, 380); f.setColumnWidth(2, 140);
+}
+
+// Écrit une formule. Si Google la refuse (Sheets en français : séparateur « ; » au lieu de « , »),
+// on la réécrit avec des points-virgules. Aucune de nos formules n'a de virgule dans un texte.
+function ecrireFormule_(cellule, formule) {
+  cellule.setFormula(formule);
+  SpreadsheetApp.flush();
+  if (String(cellule.getValue()).charAt(0) === '#') {
+    cellule.setFormula(formule.replace(/,/g, ';'));
+    SpreadsheetApp.flush();
+  }
 }
 
 // ───────────────────────── Tâches planifiées ─────────────────────────
