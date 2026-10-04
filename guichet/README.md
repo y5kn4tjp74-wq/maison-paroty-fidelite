@@ -63,13 +63,18 @@ POST vers l'URL `/exec`, en-tête `Content-Type: text/plain`, corps JSON :
 { "action": "utiliser_recompense", "magasin": "kiosque", "identifiant": "<id>" }
 ```
 
-Réponse : `statut`, `message`, `passages`, `seuil`, `recompense_en_attente`, plus `prenom` et `identifiant` (inscription et récupération), `minutes_restantes` (blocage), `validation_jour` / `validation_heure` (récompense utilisée).
+Réponse : `statut`, `message`, `passages`, `seuil`, `recompense_en_attente`, plus `prenom` et `identifiant` (inscription et récupération), `minutes_restantes` (blocage), `validation_jour` / `validation_heure` (récompense utilisée), `nouvelle_recompense` (vrai seulement au scan qui débloque la récompense).
 
 Statuts : `ok`, `deja_compte`, `recompense_debloquee`, `numero_connu`, `bloque_recuperation`, `erreur_validation`, `plafond`, `occupe`, `erreur`, et un ajout : `client_inconnu` (identifiant ou numéro sans carte : le site affiche l'inscription).
+
+## Brancher le site
+
+Le vrai site est dans `pilote/`. Une seule ligne à remplir dans `pilote/config.js` : `GUICHET_URL` (l'adresse `/exec`). Tant qu'elle est vide, le site affiche « Service indisponible ». Le `SEUIL` de ce fichier doit être le même que `seuil` dans Réglages (il sert uniquement à l'écran d'inscription, avant la première réponse du guichet).
 
 ## Tester sans Google
 
 `node guichet/tests/simulateur.js` lance 31 scénarios sur un faux Google (règle du jour, minuit à Paris, récompense, blocage, plafonds, panne).
+`node guichet/tests/serveur-local.js` lance le vrai site `pilote/` contre ce faux guichet : http://localhost:8787/pilote/ (variable `SEUIL=5` pour changer le seuil).
 
 ## Ce qui n'est pas vérifié tant qu'on n'a pas un vrai Sheets
 

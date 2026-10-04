@@ -385,7 +385,9 @@ function compterPassage_(client, magasin, reglages, maintenant) {
     rec.getRange(Math.max(rec.getLastRow(), 1) + 1, 1, 1, 6).setValues([[
       id, magasin, horodatage_(maintenant), '', '', ''
     ]]);
-    return reponseCarte_('recompense_debloquee', 'Récompense débloquée !', l, seuil);
+    var r = reponseCarte_('recompense_debloquee', 'Récompense débloquée !', l, seuil);
+    r.nouvelle_recompense = true; // le site la fête (vibration) seulement à ce moment-là
+    return r;
   }
   return reponseCarte_('ok', 'Passage enregistré.', l, seuil);
 }
