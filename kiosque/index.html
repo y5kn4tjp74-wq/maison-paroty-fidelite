@@ -1209,7 +1209,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
       return `<li class="e3__cell${isNew ? " is-new" : ""}" style="--i:${i}">${inner}${isNew ? BURST : ""}</li>`;
     }).join("");
     const txt = o.ticket || (restants === 1
-      ? "Votre prochain passage, <strong>c’est cadeau</strong> !"
+      ? "Encore <strong>1 passage</strong> et votre pizza offerte est débloquée !"
       : `Plus que <strong>${restants} passages</strong> avant votre pizza offerte !`);
     const start = o.nouveau && !reduce() ? Math.max(n - 1, 0) : n;
     const icone = o.calme ? '<span class="e3__success-icon">!</span>' : `<span class="e3__success-icon">${ICONE_OK}</span>`;
@@ -1261,7 +1261,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
         ${tamponVivant()}
         <p class="v0__dix">10<span>/10</span></p>
         <p class="v0__montrer">À montrer à l’équipe</p>
-        <p class="v0__texte">Votre pizza offerte vous attend.</p>
+        <p class="v0__texte">Votre pizza offerte vous attend à votre prochaine commande.</p>
       </main>
       <footer class="e3__actions">
         <button type="button" class="e3__btn e3__btn--primary" id="utiliser">Utiliser ma récompense</button>
@@ -1285,8 +1285,8 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
 
   function confirmer() {
     const v = feuille(`
-      <h2>Vous êtes en caisse ?</h2>
-      <p>Montrez votre écran à la vendeuse, puis confirmez. Une récompense utilisée ne peut plus servir.</p>
+      <h2>Vous êtes devant l’équipe ?</h2>
+      <p>Montrez votre écran à l’équipe, puis confirmez. Une récompense utilisée ne peut plus servir.</p>
       <button type="button" class="v0__btn" id="oui">Oui, j’utilise ma récompense</button>
       <button type="button" class="v0__btn v0__btn--clair" id="plusTard">Plus tard</button>`);
     v.querySelector("#plusTard").addEventListener("click", () => v.remove());
