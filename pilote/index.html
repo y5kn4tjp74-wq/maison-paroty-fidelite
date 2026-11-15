@@ -962,6 +962,7 @@ body { background: #1B1F22; margin: 0; }
   box-shadow: 3px 3px 0 var(--blanc);
 }
 .v0__texte { font-size: 16px; font-weight: 600; color: var(--anthracite); max-width: 30ch; }
+.v0__date { font-size: 15px; font-weight: 800; color: var(--anthracite); margin: 2px 0 4px; }
 .v0__heure {
   font-family: var(--serif); font-weight: 700; font-size: 28px; line-height: 1.1;
   padding: 10px 18px; border-radius: 14px;
@@ -1212,7 +1213,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
     const txt = o.ticket || (restants === 1
       ? "Encore <strong>1 passage</strong> et votre pizza offerte est débloquée !"
       : `Plus que <strong>${restants} passages</strong> avant votre pizza offerte !`);
-    const start = o.nouveau && !reduce() ? Math.max(n - 1, 0) : n;
+    const start = o.nouveau && !reduce() && n > 1 ? n - 1 : n;
     const icone = o.calme ? '<span class="e3__success-icon">!</span>' : `<span class="e3__success-icon">${ICONE_OK}</span>`;
     app.innerHTML = `
     <div class="e3">
@@ -1222,7 +1223,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
         <h1 class="e3__hello"><span class="e3__hello-small">${o.petit || "Bonjour"}</span><span class="e3__hello-name"${styleNom(S.prenom)}>${echap(S.prenom)}${SQUIGGLE}</span></h1>
         <section class="e3__card">
           <div class="e3__card-head">
-            <p class="e3__card-title"><span class="e3__card-script">Pizza</span><span class="e3__card-caps">Base tomate · Base crème</span></p>
+            <p class="e3__card-title"><span class="e3__card-script">Pizza</span></p>
             <p class="e3__count"><span class="e3__count-value" id="cnt">${start}</span><span>/${OBJ}</span></p>
           </div>
           <ol class="e3__stamps" style="grid-template-columns:repeat(${colonnes(OBJ)},minmax(0,1fr))">${cells}</ol>
@@ -1252,6 +1253,8 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
     return `<div class="v0__vivant" aria-hidden="true"><div class="v0__halo"></div><span class="e3__stamp"><img class="e3__stamp-mp" src="${MONO}" alt=""></span></div>`;
   }
   function recompense(nouvelle) {
+    let auj = "";
+    try { auj = "Aujourd’hui, " + new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" }); } catch (e) {}
     app.innerHTML = `
     <div class="e3 e5">
       ${ENTETE("e3")}
@@ -1261,6 +1264,7 @@ const MONO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAABMCAMAAACRUYNb
         ${tamponVivant()}
         <p class="v0__dix">${OBJ}<span>/${OBJ}</span></p>
         <p class="v0__montrer">À montrer à l’équipe</p>
+        <p class="v0__date">${auj}</p>
         <p class="v0__texte">Votre pizza offerte vous attend à votre prochaine commande.</p>
       </main>
       <footer class="e3__actions">
