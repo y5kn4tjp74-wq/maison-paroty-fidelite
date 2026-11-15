@@ -963,6 +963,19 @@ body { background: #1B1F22; margin: 0; }
 }
 .v0__texte { font-size: 16px; font-weight: 600; color: var(--anthracite); max-width: 30ch; }
 .v0__date { font-size: 15px; font-weight: 800; color: var(--anthracite); margin: 2px 0 4px; }
+/* Petits écrans (iPhone SE dans Safari) : l'écran récompense doit tenir sans défilement */
+@media (max-height: 620px) {
+  .e5 .e3__main { gap: 5px; padding-top: 6px; }
+  .e5 .e3__hello { margin-top: 2px; }
+  .e5 .e3__hello-name { font-size: 30px; }
+  .v0__vivant { width: 96px; height: 96px; margin-top: 0; }
+  .v0__vivant .e3__stamp { width: 68px; }
+  .v0__dix { font-size: 46px; }
+  .v0__dix span { font-size: 24px; }
+  .v0__montrer { padding: 6px 14px; font-size: 13px; }
+  .v0__date { font-size: 14px; margin: 0; }
+  .v0__texte { font-size: 14px; }
+}
 .v0__heure {
   font-family: var(--serif); font-weight: 700; font-size: 28px; line-height: 1.1;
   padding: 10px 18px; border-radius: 14px;
